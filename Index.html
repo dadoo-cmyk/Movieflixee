@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MovieFlix | Cinema Experience</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --card-bg: #121212;
+            --accent: #e50914;
+            --text-main: #ffffff;
+            --text-muted: #a3a3a3;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+        body { background-color: var(--bg-color); color: var(--text-main); overflow-x: hidden; padding-bottom: 80px; }
+
+        /* --- NAVIGATION --- */
+        nav {
+            position: fixed; top: 0; width: 100%; z-index: 1000; padding: 1rem 4%;
+            display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
+            transition: 0.4s;
+        }
+        nav.scrolled { background: var(--bg-color); border-bottom: 1px solid #222; }
+        .logo { font-size: 1.5rem; font-weight: 900; color: var(--accent); text-decoration: none; }
+        .search-input { background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem 1rem; border-radius: 20px; outline: none; width: 150px; font-size: 14px; }
+
+        .nav-links { display: flex; gap: 1.5rem; }
+        .nav-link { cursor: pointer; opacity: 0.7; transition: 0.3s; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; }
+        .nav-link.active { opacity: 1; color: var(--accent); }
+
+        @media (max-width: 768px) {
+            .nav-links { position: fixed; bottom: 0; left: 0; width: 100%; background: #111; padding: 12px 0; border-top: 1px solid #222; justify-content: space-around; }
+            .nav-link { display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; gap: 4px; }
+            .nav-link i { font-size: 1.2rem; display: block; }
+        }
+        @media (min-width: 769px) { .nav-link i { display: none; } .search-input { width: 250px; } }
+
+        /* --- HERO SLIDER --- */
+        .hero-container { height: 75vh; width: 100%; position: relative; overflow: hidden; background: #000; }
+        
+        .hero-slide {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            opacity: 0; transition: opacity 0.8s ease;
+            display: flex; align-items: flex-end; padding: 0 10% 8% 10%;
+        }
+        .hero-slide.active { opacity: 1; z-index: 1; }
+        .hero-slide::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(0deg, var(--bg-color) 5%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.7) 100%);
+        }
+
+        .hero-content { position: relative; z-index: 10; width: 100%; max-width: 800px; transform: translateY(20px); transition: 0.5s; opacity: 0; }
+        .hero-slide.active .hero-content { transform: translateY(0); opacity: 1; }
+        
+        .hero-title { font-size: clamp(2rem, 5vw, 4rem); font-weight: 900; margin-bottom: 0.5rem; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .hero-desc { color: var(--text-muted); font-size: 1rem; margin-bottom: 1.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* SLIDER BUTTONS */
+        .slider-btn {
+            position: absolute; top: 50%; transform: translateY(-50%); z-index: 20;
+            background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2); color: white;
+            width: 45px; height: 45px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: 0.3s;
+        }
+        .slider-btn:hover { background: var(--accent); border-color: var(--accent); }
+        .prev { left: 20px; }
+        .next { right: 20px; }
+
+        .slider-dots {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            z-index: 20; display: flex; gap: 10px;
+        }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.3); cursor: pointer; transition: 0.3s; }
+        .dot.active { background: var(--accent); width: 30px; border-radius: 5px; }
+
+        /* --- CONTENT GRID --- */
+        section { padding: 2rem 4%; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        @media (min-width: 1024px) { .grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); } }
+
+        .card { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 2/3; background: #1a1a1a; cursor: pointer; transition: 0.4s; }
+        .card:hover { transform: scale(1.05); }
+        .card img { width: 100%; height: 100%; object-fit: cover; }
+        .card-info { position: absolute; bottom: 0; width: 100%; padding: 15px 10px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); font-size: 0.9rem; font-weight: 600; }
+
+        /* --- MODAL --- */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: none; overflow-y: auto; }
+        .video-container { width: 100%; aspect-ratio: 16/9; background: #000; position: sticky; top: 0; z-index: 10; }
+        .video-container iframe { width: 100%; height: 100%; }
+        .modal-details { padding: 2rem; }
+        .close-btn { position: absolute; top: 15px; right: 15px; font-size: 1.5rem; color: white; z-index: 100; background: rgba(0,0,0,0.5); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+        .btn { padding: 0.8rem 1.5rem; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; }
+        .btn-primary { background: var(--accent); color: white; }
+        
+        .episode-card { background: #1a1a1a; padding: 15px; border-radius: 6px; margin-top: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .episode-card:hover { background: #252525; }
+        .episode-card.active { border-left: 4px solid var(--accent); background: #221010; }
+    </style>
+</head>
+<body>
+
+    <nav id="navbar">
+        <a href="#" class="logo" onclick="location.reload()">MOVIEFLIX</a>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search titles...">
+        </div>
+        <div class="nav-links">
+            <span class="nav-link active" onclick="changeCategory('movie', this)"><i class="fas fa-film"></i>Movies</span>
+            <span class="nav-link" onclick="changeCategory('tv', this)"><i class="fas fa-tv"></i>TV Shows</span>
+            <span class="nav-link" onclick="alert('List saved locally!')"><i class="fas fa-bookmark"></i>My List</span>
+        </div>
+    </nav>
+
+    <div class="hero-container">
+        <div id="heroSlider"></div>
+        <button class="slider-btn prev" onclick="moveSlide(-1)"><i class="fas fa-chevron-left"></i></button>
+        <button class="slider-btn next" onclick="moveSlide(1)"><i class="fas fa-chevron-right"></i></button>
+        <div class="slider-dots" id="sliderDots"></div>
+    </div>
+
+    <section>
+        <h3 id="sectionTitle" style="margin-bottom: 1.5rem; font-weight: 800; text-transform: uppercase;">Trending Movies</h3>
+        <div class="grid" id="mainGrid"></div>
+    </section>
+
+    <div class="modal" id="mediaModal">
+        <div class="close-btn" onclick="closeModal()"><i class="fas fa-times"></i></div>
+        <div class="video-container">
+            <iframe id="videoPlayer" src="" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <div class="modal-details">
+            <h2 id="modalTitle"></h2>
+            <p id="modalDesc" style="color: var(--text-muted); margin: 15px 0; max-width: 800px;"></p>
+            
+            <div id="tvUI" style="display: none;">
+                <h3 style="margin: 20px 0 10px 0;">Episodes</h3>
+                <select id="seasonDropdown" style="width: 100%; padding: 12px; background: #222; color: white; border: none; border-radius: 4px;" onchange="loadEpisodes(currentMediaId, this.value)"></select>
+                <div id="episodeContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = '3fd2be6f0c70a2a598f084ddfb75487c';
+        const BASE_URL = 'https://api.themoviedb.org/3';
+        const IMG_URL = 'https://image.tmdb.org/t/p/original';
+        
+        let currentType = 'movie';
+        let currentMediaId = null;
+        let slideIndex = 0;
+        let sliderTimer;
+
+        window.onload = () => {
+            initHero();
+            loadTrending();
+            
+            window.addEventListener('scroll', () => {
+                document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+            });
+
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                if (e.target.value.length > 2) searchMedia(e.target.value);
+                else if (e.target.value === '') loadTrending();
+            });
+        };
+
+        async function initHero() {
+            const res = await fetch(`${BASE_URL}/trending/all/week?api_key=${API_KEY}`);
+            const data = await res.json();
+            const items = data.results.slice(0, 6);
+            
+            const slider = document.getElementById('heroSlider');
+            const dots = document.getElementById('sliderDots');
+            
+            slider.innerHTML = items.map((item, i) => `
+                <div class="hero-slide ${i === 0 ? 'active' : ''}" style="background-image: url(${IMG_URL + item.backdrop_path})">
+                    <div class="hero-content">
+                        <h1 class="hero-title">${item.title || item.name}</h1>
+                        <p class="hero-desc">${item.overview}</p>
+                        <button class="btn btn-primary" onclick="openMedia(${item.id}, '${item.media_type}')">
+                            <i class="fas fa-play"></i> WATCH NOW
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            dots.innerHTML = items.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="jumpToSlide(${i})"></div>`).join('');
+            
+            startAutoSlide();
+        }
+
+        function moveSlide(n) {
+            const slides = document.querySelectorAll('.hero-slide');
+            const dots = document.querySelectorAll('.dot');
+            slides[slideIndex].classList.remove('active');
+            dots[slideIndex].classList.remove('active');
+            
+            slideIndex = (slideIndex + n + slides.length) % slides.length;
+            
+            slides[slideIndex].classList.add('active');
+            dots[slideIndex].classList.add('active');
+            resetTimer();
+        }
+
+        function jumpToSlide(index) {
+            const slides = document.querySelectorAll('.hero-slide');
+            const dots = document.querySelectorAll('.dot');
+            slides[slideIndex].classList.remove('active');
+            dots[slideIndex].classList.remove('active');
+            
+            slideIndex = index;
+            
+            slides[slideIndex].classList.add('active');
+            dots[slideIndex].classList.add('active');
+            resetTimer();
+        }
+
+        function startAutoSlide() {
+            sliderTimer = setInterval(() => moveSlide(1), 6000);
+        }
+
+        function resetTimer() {
+            clearInterval(sliderTimer);
+            startAutoSlide();
+        }
+
+        async function loadTrending() {
+            const res = await fetch(`${BASE_URL}/trending/${currentType}/day?api_key=${API_KEY}`);
+            const data = await res.json();
+            renderGrid(data.results);
+            document.getElementById('sectionTitle').innerText = `Trending ${currentType === 'movie' ? 'Movies' : 'TV Shows'}`;
+        }
+
+        function renderGrid(items) {
+            const grid = document.getElementById('mainGrid');
+            grid.innerHTML = items.map(item => `
+                <div class="card" onclick="openMedia(${item.id}, '${currentType}')">
+                    <img src="https://image.tmdb.org/t/p/w400${item.poster_path}" alt="">
+                    <div class="card-info">${item.title || item.name}</div>
+                </div>
+            `).join('');
+        }
+
+        async function openMedia(id, type) {
+            currentMediaId = id;
+            const res = await fetch(`${BASE_URL}/${type}/${id}?api_key=${API_KEY}`);
+            const data = await res.json();
+            
+            document.getElementById('modalTitle').innerText = data.title || data.name;
+            document.getElementById('modalDesc').innerText = data.overview;
+            document.getElementById('mediaModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+
+            if (type === 'tv') {
+                document.getElementById('tvUI').style.display = 'block';
+                const seasons = data.seasons.filter(s => s.season_number > 0);
+                document.getElementById('seasonDropdown').innerHTML = seasons.map(s => `<option value="${s.season_number}">${s.name}</option>`).join('');
+                loadEpisodes(id, seasons[0].season_number);
+            } else {
+                document.getElementById('tvUI').style.display = 'none';
+                document.getElementById('videoPlayer').src = `https://vidsrc.to/embed/movie/${data.imdb_id || id}`;
+            }
+        }
+
+        async function loadEpisodes(tvId, seasonNum) {
+            const container = document.getElementById('episodeContainer');
+            container.innerHTML = '<p>Fetching episodes...</p>';
+            const res = await fetch(`${BASE_URL}/tv/${tvId}/season/${seasonNum}?api_key=${API_KEY}`);
+            const data = await res.json();
+            
+            container.innerHTML = data.episodes.map(ep => `
+                <div class="episode-card" id="ep-${ep.episode_number}" onclick="playEpisode(${tvId}, ${seasonNum}, ${ep.episode_number})">
+                    <span>E${ep.episode_number}: ${ep.name}</span>
+                    <i class="fas fa-play-circle" style="color:var(--accent)"></i>
+                </div>
+            `).join('');
+            playEpisode(tvId, seasonNum, 1);
+        }
+
+        function playEpisode(id, s, e) {
+            document.getElementById('videoPlayer').src = `https://vidsrc.to/embed/tv/${id}/${s}/${e}`;
+            document.querySelectorAll('.episode-card').forEach(el => el.classList.remove('active'));
+            document.getElementById(`ep-${e}`)?.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('mediaModal').style.display = 'none';
+            document.getElementById('videoPlayer').src = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        async function searchMedia(query) {
+            const res = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${query}`);
+            const data = await res.json();
+            renderGrid(data.results.filter(i => i.poster_path));
+        }
+
+        function changeCategory(type, el) {
+            currentType = type;
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            el.classList.add('active');
+            loadTrending();
+        }
+    </script>
+</body>
+</html>

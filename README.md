@@ -13,3 +13,4 @@
 ​HTML5: Semantic structure for better SEO and accessibility.
 ​CSS3: Custom Flexbox/Grid layouts and keyframe animations.
 ​JavaScript (ES6): Dynamic DOM manipulation and functional search logic
+website=https://movieflixes.netlify.app/

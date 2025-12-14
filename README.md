@@ -1,4 +1,7 @@
 ​🎬 MovieFlixee
+
+
+
 ​A Lightweight, High-Performance Streaming UI. MovieFlixee is a modern, responsive streaming site built entirely with Vanilla Web Technologies. It focuses on speed, clean UI/UX, and a "Mobile-First" design philosophy to ensure users can browse their favorite titles on any device.
 ​⚡ Key Features
 ​Pure Performance: No heavy frameworks—just clean, optimized HTML, CSS, and JS.

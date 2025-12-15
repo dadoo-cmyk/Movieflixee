@@ -32,5 +32,5 @@
 
 ​JavaScript (ES6): Dynamic DOM manipulation and functional search logic
 
-
+Although the ads might be too much so bear with it for now 😁😁😁😁😁
 website=https://movieflixes.netlify.app/
